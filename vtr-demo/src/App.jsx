@@ -129,6 +129,19 @@ export default function VtrDemoApp() {
 
   const done = autoDone && humanDone;
 
+  // prevent mobile viewport zoom when content changes
+  useEffect(() => {
+    const meta = document.querySelector("meta[name=viewport]");
+    if (meta) {
+      meta.setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no");
+    } else {
+      const m = document.createElement("meta");
+      m.name = "viewport";
+      m.content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no";
+      document.head.appendChild(m);
+    }
+  }, []);
+
   useEffect(() => {
     const el = humanScrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
@@ -241,7 +254,7 @@ export default function VtrDemoApp() {
           {/* ── SIDE BY SIDE WORKFLOWS ── */}
           <section className="section-grid two-col">
             {/* MANUAL */}
-            <Panel title="Manual debugging workflow" icon={<User size={15} />} eyebrow="Human effort" completionBadge={{ label: "~5 min (est.)", variant: "badge-slow", show: humanDone }}>
+            <Panel title="Manual debugging workflow" icon={<User size={15} />} eyebrow="Human effort" completionBadge={{ label: "~5 min (est.)", variant: "badge-slow", show: humanDone }} extraClass="panel-fixed">
               <div className="code-shell code-shell-scroll" ref={humanScrollRef}>
                 <div className="traffic-lights">
                   <span className="dot dot-red" /><span className="dot dot-yellow" /><span className="dot dot-green" />
@@ -286,7 +299,7 @@ export default function VtrDemoApp() {
             </Panel>
 
             {/* AUTOMATED */}
-            <Panel title="VTR-LLM repair workflow" icon={<Bot size={15} />} eyebrow="Automated system" completionBadge={{ label: "43.6 s (avg)", variant: "badge-fast", show: autoDone }}>
+            <Panel title="VTR-LLM repair workflow" icon={<Bot size={15} />} eyebrow="Automated system" completionBadge={{ label: "43.6 s (avg)", variant: "badge-fast", show: autoDone }} extraClass="panel-fixed">
               <div className="step-list-scroll">
                 {AUTO_STEPS.map((step, i) => {
                   const isActive = i === activeAutoStep;
@@ -543,14 +556,14 @@ export default function VtrDemoApp() {
   );
 }
 
-function Panel({ title, icon, eyebrow, children, completionBadge }) {
+function Panel({ title, icon, eyebrow, children, completionBadge, extraClass }) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.18 }}
       transition={{ duration: 0.6 }}
-      className="panel"
+      className={`panel${extraClass ? " " + extraClass : ""}`}
     >
       <div className="panel-header">
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -638,13 +651,14 @@ button { font: inherit; }
 .secondary-btn:hover { background: rgba(255,255,255,0.1); }
 
 .panel { border-radius: 2rem; border: 1px solid var(--border); background: var(--panel); padding: clamp(1rem,2vw,1.4rem); backdrop-filter: blur(1rem); box-shadow: var(--shadow); }
+.panel-fixed { height: 70vh; overflow: hidden; display: flex; flex-direction: column; }
 .panel-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
 .panel-eyebrow { margin-bottom: 0.25rem; color: rgba(147,236,255,0.8); font-size: clamp(0.75rem,0.9vw,0.84rem); letter-spacing: 0.18em; text-transform: uppercase; }
 .panel-title { margin: 0; color: #f4f8ff; font-size: clamp(1.15rem,1.8vw,1.5rem); letter-spacing: -0.02em; }
 .panel-icon { display: flex; align-items: center; justify-content: center; width: 2.2rem; aspect-ratio: 1; border-radius: 999rem; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--cyan); flex-shrink: 0; }
 
 .code-shell { border-radius: 1.5rem; border: 1px solid var(--border); background: #08101b; padding: clamp(1rem,2vw,1.2rem); font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: clamp(0.82rem,1vw,0.96rem); line-height: 1.8; min-height: 14rem; }
-.code-shell-scroll { min-height: 18rem; max-height: 28rem; overflow-y: auto; scroll-behavior: smooth; }
+.code-shell-scroll { height: 38vh; overflow-y: auto; scroll-behavior: smooth; }
 .code-shell-scroll::-webkit-scrollbar { width: 4px; }
 .code-shell-scroll::-webkit-scrollbar-track { background: transparent; }
 .code-shell-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
@@ -666,7 +680,7 @@ button { font: inherit; }
 @keyframes blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
 
 .step-list { display: flex; flex-direction: column; gap: 0.8rem; }
-.step-list-scroll { display: flex; flex-direction: column; gap: 0.8rem; min-height: 28rem; max-height: 34rem; overflow-y: auto; padding-right: 0.25rem; }
+.step-list-scroll { display: flex; flex-direction: column; gap: 0.8rem; height: 48vh; overflow-y: auto; padding-right: 0.25rem; }
 .step-list-scroll::-webkit-scrollbar { width: 4px; }
 .step-list-scroll::-webkit-scrollbar-track { background: transparent; }
 .step-list-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
@@ -758,5 +772,8 @@ button { font: inherit; }
   .table-head { display: none; }
   .table-row { grid-template-columns: 1fr; gap: 0.55rem; }
   .panel-header, .doc-link-card { flex-direction: column; align-items: flex-start; }
+  .panel-fixed { height: 75vh; }
+  .step-list-scroll { height: 50vh; }
+  .code-shell-scroll { height: 40vh; }
 }
 `;
